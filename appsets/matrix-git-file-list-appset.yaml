@@ -23,7 +23,7 @@ spec:
           files:
           - path: appsets/argocd_config.yaml
       - list:
-          elementsYaml: "{{ .applications | toJson }}"
+          elementsYaml: "{{ .applications | toJson }}" # import list from the contents of `applications` array that was loaded by the git generator above
 
   template:
     metadata:
