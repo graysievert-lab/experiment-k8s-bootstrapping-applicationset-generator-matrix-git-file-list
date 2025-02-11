@@ -1,3 +1,7 @@
+### For application set controller, argo keys to the repositories should not be project scoped.
+defaults:
+  repoURL: &this_repo git@github.com:graysievert-lab/experiment-k8s-bootstrapping-applicationset-generator-matrix-git-file-list.git 
+
 applications: 
   - name: kuard-kustom
     namespace: kuard-kustom
@@ -17,9 +21,10 @@ applications:
 
     type: manifests # helmChart, helmRepo, manifests
     manifests:
-      repoURL: git@github.com:graysievert-lab/experiment-k8s-bootstrapping-applicationset-generator-matrix-git-file-list.git
-      targetRevision: HEAD
-      path: apps/kuard-kustom
+      # repoURL: git@github.com:graysievert-lab/experiment-k8s-bootstrapping-applicationset-generator-matrix-git-file-list.git # Points to a git repo with manifests.
+      repoURL: *this_repo # using yaml anchor
+      targetRevision: HEAD # Branch, tag, commit
+      path: apps/kuard-kustom # directory that contains manifests to render
 
   
   - name: nginx-private
@@ -37,12 +42,11 @@ applications:
       - CreateNamespace=true
       - SkipDryRunOnMissingResource=true
       - ServerSideApply=true
-
     type: helmChart # helmChart, helmRepo, manafests
     helmChart:
-      repoURL: git@github.com:graysievert-lab/experiment-k8s-bootstrapping-applicationset-generator-matrix-git-file-list.git
-      targetRevision: HEAD
-      path: apps/nginx-private
+      repoURL: git@github.com:graysievert-lab/experiment-k8s-bootstrapping-applicationset-generator-matrix-git-file-list.git # Points to a Helm chart repo with values file in the same repo
+      targetRevision: HEAD # Branch, tag, commit
+      path: apps/nginx-private # directory that contains Chart.ayml
       valueFile: values.yaml
 
 
@@ -62,15 +66,13 @@ applications:
       - CreateNamespace=true
       - SkipDryRunOnMissingResource=true
       - ServerSideApply=true
-
     type: helmRepo # helmChart, helmRepo, manafests
-
     helmRepo: 
-      repoURL: https://charts.bitnami.com/bitnami
-      targetRevision: 18.0.0
-      chart: nginx
-      values:
-        repoURL: git@github.com:graysievert-lab/experiment-k8s-bootstrapping-applicationset-generator-matrix-git-file-list.git
-        targetRevision: HEAD
-        valueFile: apps/nginx-public/values.yaml
+      repoURL: https://charts.bitnami.com/bitnami # Points to a Helm chart repo
+      targetRevision: 18.0.0 # Chart version
+      chart: nginx # cahrt name to pull from a Helm repo.
+      values: # location of values for the chart
+        repoURL: git@github.com:graysievert-lab/experiment-k8s-bootstrapping-applicationset-generator-matrix-git-file-list.git # repository with values file
+        targetRevision: HEAD # Branch, tag, commit
+        valueFile: apps/nginx-public/values.yaml # path to values file from the repo root
 
