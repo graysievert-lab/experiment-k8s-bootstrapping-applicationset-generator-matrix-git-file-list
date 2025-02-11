@@ -23,7 +23,7 @@ spec:
           files:
           - path: appsest/argocd_config.yaml
       - list:
-          applications: "{{ .applications | toJson }}"
+          elementsYaml: "{{ .applications | toJson }}"
 
   template:
     metadata:
