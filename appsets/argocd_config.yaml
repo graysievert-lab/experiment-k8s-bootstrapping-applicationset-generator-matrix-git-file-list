@@ -3,32 +3,15 @@ defaults:
   repoURL: &this_repo git@github.com:graysievert-lab/experiment-k8s-bootstrapping-applicationset-generator-matrix-git-file-list.git 
 
 applications: 
+######### kubernetes manifests
   - name: kuard-kustom
     namespace: kuard-kustom
-    annotations:
-      argocd.argoproj.io/compare-options: >- 
-        ServerSideDiff=true,
-        IncludeMutationWebhook=true 
-    syncPolicy:
-      automated:
-        prune: true
-        selfHeal: true
-      syncOptions:     
-      - ApplyOutOfSyncOnly=true
-      - CreateNamespace=true
-      - SkipDryRunOnMissingResource=true
-      - ServerSideApply=true
-
     type: manifests # helmChart, helmRepo, manifests
     manifests:
       # repoURL: git@github.com:graysievert-lab/experiment-k8s-bootstrapping-applicationset-generator-matrix-git-file-list.git # Points to a git repo with manifests.
-      repoURL: *this_repo # using yaml anchor
+      repoURL: *this_repo # yaml anchor to use value from defaults
       targetRevision: HEAD # Branch, tag, commit
       path: apps/kuard-kustom # directory that contains manifests to render
-
-  
-  - name: nginx-private
-    namespace: nginx-private
     annotations:
       argocd.argoproj.io/compare-options: >- 
         ServerSideDiff=true,
@@ -42,17 +25,18 @@ applications:
       - CreateNamespace=true
       - SkipDryRunOnMissingResource=true
       - ServerSideApply=true
+
+
+######### helm chart in git repo
+  - name: nginx-private
+    namespace: nginx-private
     type: helmChart # helmChart, helmRepo, manafests
     helmChart:
-      repoURL: git@github.com:graysievert-lab/experiment-k8s-bootstrapping-applicationset-generator-matrix-git-file-list.git # Points to a Helm chart repo with values file in the same repo
+      # repoURL: git@github.com:graysievert-lab/experiment-k8s-bootstrapping-applicationset-generator-matrix-git-file-list.git # Points to a Helm chart repo with values file in the same repo
+      repoURL: *this_repo # yaml anchor to use value from defaults
       targetRevision: HEAD # Branch, tag, commit
       path: apps/nginx-private # directory that contains Chart.ayml
       valueFile: values.yaml
-
-
-
-  - name: nginx-public
-    namespace: nginx-public
     annotations:
       argocd.argoproj.io/compare-options: >- 
         ServerSideDiff=true,
@@ -66,13 +50,31 @@ applications:
       - CreateNamespace=true
       - SkipDryRunOnMissingResource=true
       - ServerSideApply=true
+
+
+######### helm chart in helm repo
+  - name: nginx-public
+    namespace: nginx-public
     type: helmRepo # helmChart, helmRepo, manafests
     helmRepo: 
       repoURL: https://charts.bitnami.com/bitnami # Points to a Helm chart repo
       targetRevision: 18.0.0 # Chart version
       chart: nginx # cahrt name to pull from a Helm repo.
       values: # location of values for the chart
-        repoURL: git@github.com:graysievert-lab/experiment-k8s-bootstrapping-applicationset-generator-matrix-git-file-list.git # repository with values file
+        # repoURL: git@github.com:graysievert-lab/experiment-k8s-bootstrapping-applicationset-generator-matrix-git-file-list.git # repository with values file
+        repoURL: *this_repo # yaml anchor to use value from defaults
         targetRevision: HEAD # Branch, tag, commit
         valueFile: apps/nginx-public/values.yaml # path to values file from the repo root
-
+    annotations:
+      argocd.argoproj.io/compare-options: >- 
+        ServerSideDiff=true,
+        IncludeMutationWebhook=true 
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:     
+      - ApplyOutOfSyncOnly=true
+      - CreateNamespace=true
+      - SkipDryRunOnMissingResource=true
+      - ServerSideApply=true
