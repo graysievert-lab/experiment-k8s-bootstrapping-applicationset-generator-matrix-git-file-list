@@ -1,0 +1,76 @@
+applications: 
+  - name: kuard-kustom
+    namespace: kuard-kustom
+    annotations:
+      argocd.argoproj.io/compare-options: >- 
+        ServerSideDiff=true,
+        IncludeMutationWebhook=true 
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:     
+      - ApplyOutOfSyncOnly=true
+      - CreateNamespace=true
+      - SkipDryRunOnMissingResource=true
+      - ServerSideApply=true
+
+    type: manifests # helmChart, helmRepo, manifests
+    manifests:
+      repoURL: git@github.com:graysievert-lab/experiment-k8s-bootstrapping-applicationset-generator-matrix-git-file-list.git
+      targetRevision: HEAD
+      path: apps/kuard-kustom
+
+  
+  - name: nginx-private
+    namespace: nginx-private
+    annotations:
+      argocd.argoproj.io/compare-options: >- 
+        ServerSideDiff=true,
+        IncludeMutationWebhook=true 
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:     
+      - ApplyOutOfSyncOnly=true
+      - CreateNamespace=true
+      - SkipDryRunOnMissingResource=true
+      - ServerSideApply=true
+
+    type: helmChart # helmChart, helmRepo, manafests
+    helmChart:
+      repoURL: git@github.com:graysievert-lab/experiment-k8s-bootstrapping-applicationset-generator-matrix-git-file-list.git
+      targetRevision: HEAD
+      path: apps/nginx-private
+      valueFile: values.yaml
+
+
+
+  - name: nginx-public
+    namespace: nginx-public
+    annotations:
+      argocd.argoproj.io/compare-options: >- 
+        ServerSideDiff=true,
+        IncludeMutationWebhook=true 
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true
+      syncOptions:     
+      - ApplyOutOfSyncOnly=true
+      - CreateNamespace=true
+      - SkipDryRunOnMissingResource=true
+      - ServerSideApply=true
+
+    type: helmRepo # helmChart, helmRepo, manafests
+
+    helmRepo: 
+      repoURL: https://charts.bitnami.com/bitnami
+      targetRevision: 18.0.0
+      chart: nginx
+      values:
+        repoURL: git@github.com:graysievert-lab/experiment-k8s-bootstrapping-applicationset-generator-matrix-git-file-list.git
+        targetRevision: HEAD
+        valueFile: apps/nginx-public/values.yaml
+

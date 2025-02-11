@@ -1,0 +1,79 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: matrix-git-file-list-generated-appset
+  namespace: argocd
+spec:
+  syncPolicy: # This sync policy pertains to the ApplicationSet, not to the Applications it creates.
+    # applicationsSync: create-only # Prevents ApplicationSet controller from modifying or deleting Applications.
+    # applicationsSync: create-update # Prevents ApplicationSet controller from deleting Applications. Update is allowed.
+    # applicationsSync: create-delete # Prevents ApplicationSet controller from modifying Applications. Delete is allowed.
+    applicationsSync: sync # (default) Update and Delete are allowed.
+    # preserveResourcesOnDeletion: true # Prevent an Application's child resources from being deleted, when the parent Application is deleted
+
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+
+  generators:
+  - matrix:
+      generators:
+      - git:
+          repoURL: git@github.com:graysievert-lab/experiment-k8s-bootstrapping-applicationset-generator-matrix-git-file-list.git
+          revision: HEAD
+          files:
+          - path: appsest/argocd_config.yaml
+      - list:
+          applications: "{{ .applications | toJson }}"
+
+  template:
+    metadata:
+      name: '{{ .name }}'
+      namespace: argocd
+
+    spec:
+      project: default
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{ .namespace }}'
+
+  templatePatch: |
+    metadata:
+      annotations:
+        everyone: has this
+      {{- if hasKey . "annotations" }}
+      {{- range $key, $value := .annotations }}
+        {{ $key }}: "{{ $value }}"
+      {{- end }}
+      {{- end }}
+
+    spec:
+      {{- if hasKey . "syncPolicy" }}
+      syncPolicy: {{ toYaml .syncPolicy | nindent 6 }}
+      {{- end }}
+
+      sources:
+      {{- if eq .type "helmChart" }}
+        - repoURL: '{{ .helmChart.repoURL}}'
+          targetRevision: '{{ .helmChart.targetRevision}}'
+          path: '{{ .helmChart.path}}' 
+          helm:
+            valueFiles:
+              - '{{ .helmChart.valueFile}}'
+
+      {{- else if eq .type "helmRepo" }}
+        - repoURL: '{{ .helmRepo.values.repoURL}}'
+          targetRevision: '{{ .helmRepo.values.targetRevision}}'
+          ref: values
+
+        - repoURL: '{{ .helmRepo.repoURL}}'
+          targetRevision: '{{ .helmRepo.targetRevision}}'
+          chart: '{{ .helmRepo.chart}}' 
+          helm:
+            valueFiles:
+              - '$values/{{ .helmRepo.values.valueFile}}'
+
+      {{- else if eq .type "manifests" }}
+        - repoURL: '{{ .manifests.repoURL}}'
+          targetRevision: '{{ .manifests.targetRevision}}'
+          path: '{{ .manifests.path}}' 
+      {{- end }}

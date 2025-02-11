@@ -1,0 +1,5 @@
+
+resources:
+  - kuard-service.yaml
+  - kuard-deployment.yaml
+  - kuard-ingress.yaml

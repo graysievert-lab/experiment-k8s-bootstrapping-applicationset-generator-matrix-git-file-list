@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kuard
+  annotations:
+    cert-manager.io/cluster-issuer: "cluster-acme-lan"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - kuard.cluster.lan
+    secretName: quickstart-example-tls
+  rules:
+  - host: kuard.cluster.lan
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: kuard
+            port:
+              number: 80
