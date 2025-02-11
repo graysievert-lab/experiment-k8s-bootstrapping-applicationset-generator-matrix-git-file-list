@@ -21,7 +21,7 @@ spec:
           repoURL: git@github.com:graysievert-lab/experiment-k8s-bootstrapping-applicationset-generator-matrix-git-file-list.git
           revision: HEAD
           files:
-          - path: appsest/argocd_config.yaml
+          - path: appsets/argocd_config.yaml
       - list:
           elementsYaml: "{{ .applications | toJson }}"
 
